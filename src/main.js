@@ -4,6 +4,7 @@ import { OverlayManager } from './overlay-manager.js';
 import { SignaturePad } from './signature-pad.js';
 import { createSampleFormPDF } from './sample-pdf.js';
 import { exportFilledPDF } from './exporter.js';
+import './firebase.js';
 
 // Application State
 let currentPdfBytes = null;
