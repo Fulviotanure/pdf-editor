@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conciliador PDF Editor - Edição & Preenchimento de Documentos</title>
+  <meta name="description" content="Conciliador PDF Editor - Editor e preenchedor profissional de documentos e formulários PDF com suporte a preenchimento, vistos e assinaturas digitais.">
+  
+  <!-- Google Fonts: Inter & Caveat/Dancing Script for Signatures -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Dancing+Script:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+<body class="theme-dark">
+  <div id="app" class="app-layout">
+    <!-- Top Navigation Bar -->
+    <header class="app-header" id="app-header">
+      <div class="header-left">
+        <div class="brand">
+          <div class="brand-logo" title="Conciliador PDF Editor">
+            <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" stroke="rgba(255,255,255,0.2)"></path>
+              <path d="m7.5 12 3 3 6.5-6.5" stroke="#00e599"></path>
+            </svg>
+          </div>
+          <div class="brand-info">
+            <h1 class="brand-title">Conciliador <span class="brand-badge">PDF EDITOR</span></h1>
+            <span class="brand-subtitle" id="pdf-filename-display">Nenhum documento carregado</span>
+          </div>
+        </div>
+
+        <div class="file-actions">
+          <label for="pdf-file-input" class="btn btn-secondary btn-sm" id="btn-open-file" title="Abrir arquivo PDF do computador">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <span>Abrir PDF</span>
+          </label>
+          <input type="file" id="pdf-file-input" accept="application/pdf" style="display: none;">
+        </div>
+      </div>
+
+      <!-- Center History & Page Quick Nav -->
+      <div class="header-center" id="header-pagination">
+        <div class="btn-group history-group">
+          <button id="btn-undo" class="btn-icon" title="Desfazer (Ctrl+Z)" disabled>
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+              <path d="M3 7v6h6"></path>
+              <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+            </svg>
+          </button>
+          <button id="btn-redo" class="btn-icon" title="Refazer (Ctrl+Y)" disabled>
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+              <path d="M21 7v6h-6"></path>
+              <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="page-stepper" id="page-stepper">
+          <button id="btn-prev-page" class="btn-icon btn-sm" title="Página Anterior">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <div class="page-indicator">
+            <input type="number" id="input-page-num" value="1" min="1" max="1" aria-label="Número da página">
+            <span class="page-total">de <span id="page-count-display">1</span></span>
+          </div>
+          <button id="btn-next-page" class="btn-icon btn-sm" title="Próxima Página">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Export & Primary Actions -->
+      <div class="header-right">
+        <div class="zoom-controls">
+          <button id="btn-zoom-out" class="btn-icon btn-sm" title="Reduzir Zoom (Ctrl -)">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+          <span id="zoom-level-text" class="zoom-text">100%</span>
+          <button id="btn-zoom-in" class="btn-icon btn-sm" title="Aumentar Zoom (Ctrl +)">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+          <button id="btn-fit-width" class="btn-icon btn-sm" title="Ajustar à Largura">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <polyline points="9 21 3 21 3 15"></polyline>
+              <line x1="21" y1="3" x2="14" y2="10"></line>
+              <line x1="3" y1="21" x2="10" y2="14"></line>
+            </svg>
+          </button>
+        </div>
+
+        <button id="btn-help" class="btn-icon" title="Atalhos e Dicas">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </button>
+
+        <button id="btn-download-pdf" class="btn btn-primary" title="Exportar e baixar o PDF com as respostas e anotações">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Baixar PDF Preenchido</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Layout -->
+    <main class="app-main">
+      <!-- Left Sidebar: Pages & Form Overview -->
+      <aside class="app-sidebar" id="app-sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-tabs">
+            <button class="sidebar-tab active" data-tab="thumbnails" id="tab-thumbnails">Páginas</button>
+            <button class="sidebar-tab" data-tab="fields" id="tab-fields">Campos (<span id="fields-badge-count">0</span>)</button>
+          </div>
+          <button id="btn-toggle-sidebar" class="btn-icon btn-sm" title="Minimizar barra lateral">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+              <polyline points="11 19 4 12 11 5"></polyline>
+              <polyline points="18 19 11 12 18 5"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <div class="sidebar-content">
+          <!-- Thumbnails View -->
+          <div class="tab-pane active" id="pane-thumbnails">
+            <div id="thumbnails-list" class="thumbnails-list">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Form Fields Summary View -->
+          <div class="tab-pane" id="pane-fields">
+            <div class="fields-view-header">
+              <span class="text-muted text-xs">Campos interativos detectados</span>
+              <button id="btn-highlight-fields" class="btn-xs btn-outline">Destacar Tudo</button>
+            </div>
+            <div id="form-fields-list" class="form-fields-list">
+              <div class="empty-state text-xs text-muted">Nenhum campo interativo carregado</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Center Viewport Area -->
+      <section class="app-viewport-container" id="viewport-container">
+        <!-- Floating Tools Toolbar -->
+        <nav class="floating-toolbar" id="floating-toolbar" aria-label="Ferramentas de preenchimento">
+          <div class="toolbar-group">
+            <button class="tool-btn active" id="tool-select" data-tool="select" title="Ferramenta de Seleção / Mover (V)">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+                <path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"></path>
+                <path d="m13 13 6 6"></path>
+              </svg>
+              <span class="tool-tooltip">Selecionar (V)</span>
+            </button>
+            <button class="tool-btn" id="tool-text" data-tool="text" title="Inserir Texto (T)">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+                <polyline points="4 7 4 4 20 4 20 7"></polyline>
+                <line x1="9" y1="20" x2="15" y2="20"></line>
+                <line x1="12" y1="4" x2="12" y2="20"></line>
+              </svg>
+              <span class="tool-tooltip">Texto (T)</span>
+            </button>
+            <button class="tool-btn" id="tool-check" data-tool="check" title="Inserir Visto de Confirmação (C)">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span class="tool-tooltip">Visto (✓)</span>
+            </button>
+            <button class="tool-btn" id="tool-cross" data-tool="cross" title="Inserir Marcação em X (X)">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.5" fill="none">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+              <span class="tool-tooltip">Marcar X (✕)</span>
+            </button>
+            <button class="tool-btn" id="tool-date" data-tool="date" title="Inserir Data Atual (D)">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              <span class="tool-tooltip">Data Atual</span>
+            </button>
+            <button class="tool-btn" id="tool-signature" data-tool="signature" title="Criar ou Inserir Assinatura (S)">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+                <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path>
+                <line x1="16" y1="8" x2="2" y2="22"></line>
+                <line x1="17.5" y1="15" x2="9" y2="15"></line>
+              </svg>
+              <span class="tool-tooltip">Assinatura (S)</span>
+            </button>
+            <button class="tool-btn" id="tool-whiteout" data-tool="whiteout" title="Tarja Branca / Cobertura (W)">
+              <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+                <rect x="3" y="5" width="18" height="14" rx="2" fill="currentColor" opacity="0.3"></rect>
+                <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+              </svg>
+              <span class="tool-tooltip">Tarja Branca</span>
+            </button>
+          </div>
+
+          <div class="toolbar-divider"></div>
+
+          <!-- Dynamic Tool Properties (Text formatting, colors, etc.) -->
+          <div class="toolbar-properties" id="toolbar-properties">
+            <!-- Text Size -->
+            <div class="prop-item" id="prop-font-size-container" title="Tamanho da Fonte">
+              <span class="prop-label">Aa</span>
+              <select id="prop-font-size" class="prop-select" aria-label="Tamanho da fonte">
+                <option value="10">10px</option>
+                <option value="12">12px</option>
+                <option value="14" selected>14px</option>
+                <option value="16">16px</option>
+                <option value="18">18px</option>
+                <option value="20">20px</option>
+                <option value="24">24px</option>
+                <option value="28">28px</option>
+                <option value="36">36px</option>
+              </select>
+            </div>
+
+            <!-- Text/Ink Color -->
+            <div class="prop-item" id="prop-color-container" title="Cor da Tinta / Texto">
+              <input type="color" id="prop-color" value="#0f172a" class="prop-color-picker" aria-label="Cor do texto ou assinatura">
+            </div>
+
+            <!-- Text Background Toggle -->
+            <button id="prop-bg-toggle" class="btn-icon btn-sm" title="Fundo Branco Transparente/Opaco" data-bg="transparent">
+              <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none">
+                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+                <path d="M3 9h18"></path>
+                <path d="M9 21V9"></path>
+              </svg>
+            </button>
+
+            <!-- Delete Selected Element -->
+            <button id="btn-delete-selected" class="btn-icon btn-sm btn-danger" title="Excluir Elemento Selecionado (Del)" style="display: none;">
+              <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
+          </div>
+        </nav>
+
+        <!-- PDF Pages Scrollable Viewport -->
+        <div class="viewport-canvas-wrapper" id="viewport-canvas-wrapper">
+          <!-- Drop Overlay when dragging PDF -->
+          <div class="drag-drop-zone" id="drag-drop-zone">
+            <div class="drop-zone-card">
+              <div class="drop-icon">
+                <svg viewBox="0 0 24 24" width="48" height="48" stroke="currentColor" stroke-width="1.8" fill="none">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+              </div>
+              <h3>Solte seu arquivo PDF aqui</h3>
+              <p>Suporte completo para formulários e documentos para preenchimento</p>
+            </div>
+          </div>
+
+          <!-- Welcome Banner if no PDF is loaded yet -->
+          <div class="welcome-screen" id="welcome-screen">
+            <div class="welcome-card">
+              <div class="welcome-hero-icon">
+                <svg viewBox="0 0 24 24" width="46" height="46" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <path d="m9 15 2 2 4-4" stroke="#00e599" stroke-width="2.5"></path>
+                </svg>
+              </div>
+              <h2 class="welcome-title">Conciliador <span class="text-gradient">PDF Editor</span></h2>
+              <p class="welcome-subtitle">Preencha formulários, digite textos, marque vistos (✓/✕), insira datas e assine documentos contábeis com agilidade e total segurança.</p>
+
+              <div class="welcome-action-buttons">
+                <label for="pdf-file-input" class="btn btn-primary btn-lg" id="btn-welcome-open">
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.2" fill="none">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                  </svg>
+                  <span>Selecionar Arquivo PDF</span>
+                </label>
+              </div>
+              <div class="welcome-drag-hint">
+                <span>ou arraste e solte seu arquivo PDF diretamente nesta tela</span>
+              </div>
+
+              <div class="welcome-features-grid">
+                <div class="feature-item">
+                  <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none">
+                      <path d="M12 20h9"></path>
+                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                    </svg>
+                  </div>
+                  <div class="feature-text">
+                    <strong>Preenchimento & Vistos</strong>
+                    <span>Digitação livre em qualquer linha, vistos de confirmação (✓) e cruzes (✕).</span>
+                  </div>
+                </div>
+                <div class="feature-item">
+                  <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none">
+                      <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path>
+                      <line x1="16" y1="8" x2="2" y2="22"></line>
+                      <line x1="17.5" y1="15" x2="9" y2="15"></line>
+                    </svg>
+                  </div>
+                  <div class="feature-text">
+                    <strong>Assinatura Digital</strong>
+                    <span>Desenhe com mouse/touchpad, digite caligrafia cursiva ou insira imagem.</span>
+                  </div>
+                </div>
+                <div class="feature-item">
+                  <div class="feature-icon">
+                    <svg viewBox="0 0 24 24" width="22" height="22" stroke="currentColor" stroke-width="2" fill="none">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                  </div>
+                  <div class="feature-text">
+                    <strong>100% Seguro & Privado</strong>
+                    <span>Processamento em tempo real direto na sua máquina. Nenhum dado sai do seu computador.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Document Render Area: Dynamically contains pages -->
+          <div class="pages-container" id="pages-container" style="display: none;">
+            <!-- Pages will be rendered here with:
+                 .pdf-page-container
+                   -> canvas.pdf-page-canvas (PDF rendering)
+                   -> div.pdf-acroform-layer (Interactive form fields)
+                   -> div.pdf-overlay-layer (Custom text, checkmarks, signatures, stamps)
+            -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Signature Creation Modal -->
+    <div class="modal-backdrop" id="signature-modal" style="display: none;">
+      <div class="modal-dialog signature-dialog">
+        <div class="modal-header">
+          <div class="modal-title-group">
+            <h3>Criar Assinatura ou Rubrica</h3>
+            <p class="modal-subtitle">Escolha como deseja assinar seu documento</p>
+          </div>
+          <button class="btn-icon btn-sm" id="btn-close-sig-modal" aria-label="Fechar">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="sig-tabs">
+            <button class="sig-tab active" data-sigtab="draw" id="sigtab-btn-draw">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+                <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+                <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+              </svg>
+              <span>Desenhar</span>
+            </button>
+            <button class="sig-tab" data-sigtab="type" id="sigtab-btn-type">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+                <polyline points="4 7 4 4 20 4 20 7"></polyline>
+                <line x1="9" y1="20" x2="15" y2="20"></line>
+                <line x1="12" y1="4" x2="12" y2="20"></line>
+              </svg>
+              <span>Digitar</span>
+            </button>
+            <button class="sig-tab" data-sigtab="upload" id="sigtab-btn-upload">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+              <span>Carregar Imagem</span>
+            </button>
+          </div>
+
+          <!-- Tab Pane 1: Draw Signature -->
+          <div class="sig-tab-content active" id="sig-pane-draw">
+            <div class="signature-canvas-container">
+              <canvas id="signature-canvas" width="600" height="200"></canvas>
+              <div class="sig-baseline"></div>
+              <span class="sig-canvas-hint">Assine acima da linha usando o mouse ou tela de toque</span>
+            </div>
+            <div class="sig-tools-row">
+              <div class="ink-colors">
+                <span class="text-xs text-muted">Cor da Caneta:</span>
+                <button class="ink-btn active" data-color="#0f172a" style="background: #0f172a;" title="Preto"></button>
+                <button class="ink-btn" data-color="#1e3a8a" style="background: #1e3a8a;" title="Azul Caneta"></button>
+                <button class="ink-btn" data-color="#0369a1" style="background: #0369a1;" title="Azul Real"></button>
+              </div>
+              <button id="btn-clear-sig" class="btn btn-ghost btn-sm">Limpar Assinatura</button>
+            </div>
+          </div>
+
+          <!-- Tab Pane 2: Type Signature -->
+          <div class="sig-tab-content" id="sig-pane-type">
+            <div class="form-group mb-4">
+              <label for="sig-type-input" class="form-label">Digite seu Nome ou Rubrica:</label>
+              <input type="text" id="sig-type-input" class="form-input" placeholder="Ex: Fulvio Silva" value="Fulvio Silva">
+            </div>
+
+            <div class="font-previews-grid" id="font-previews-container">
+              <div class="font-preview-card active" data-font="Caveat">
+                <span class="preview-sample" style="font-family: 'Caveat', cursive;">Fulvio Silva</span>
+                <span class="font-name">Estilo Moderno (Caveat)</span>
+              </div>
+              <div class="font-preview-card" data-font="Dancing Script">
+                <span class="preview-sample" style="font-family: 'Dancing Script', cursive;">Fulvio Silva</span>
+                <span class="font-name">Estilo Cursivo Elegante (Dancing Script)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab Pane 3: Upload Image -->
+          <div class="sig-tab-content" id="sig-pane-upload">
+            <div class="sig-upload-box" id="sig-upload-box">
+              <input type="file" id="sig-file-input" accept="image/png, image/jpeg" style="display: none;">
+              <div id="sig-upload-prompt">
+                <svg viewBox="0 0 24 24" width="36" height="36" stroke="currentColor" stroke-width="1.8" fill="none">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <p>Clique ou arraste uma foto/scan da sua assinatura (PNG ou JPG)</p>
+              </div>
+              <div id="sig-upload-preview" style="display: none;">
+                <img id="sig-uploaded-img" alt="Prévia da assinatura">
+                <button id="btn-remove-sig-img" class="btn-xs btn-danger mt-2">Trocar Imagem</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-ghost" id="btn-cancel-sig">Cancelar</button>
+          <button class="btn btn-primary" id="btn-apply-sig">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Inserir no Documento</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Help & Keyboard Shortcuts Modal -->
+    <div class="modal-backdrop" id="help-modal" style="display: none;">
+      <div class="modal-dialog help-dialog">
+        <div class="modal-header">
+          <h3>Guia & Atalhos - Conciliador PDF Editor</h3>
+          <button class="btn-icon btn-sm" id="btn-close-help-modal" aria-label="Fechar">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="shortcuts-grid">
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Ferramenta Seleção / Mover</span>
+              <kbd>V</kbd>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Inserir Texto</span>
+              <kbd>T</kbd>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Inserir Visto (Check)</span>
+              <kbd>C</kbd>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Inserir X (Cruz)</span>
+              <kbd>X</kbd>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Inserir Assinatura</span>
+              <kbd>S</kbd>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Inserir Data de Hoje</span>
+              <kbd>D</kbd>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Desfazer Ação</span>
+              <kbd>Ctrl + Z</kbd>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Refazer Ação</span>
+              <kbd>Ctrl + Y</kbd>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Excluir elemento selecionado</span>
+              <kbd>Delete / Backspace</kbd>
+            </div>
+            <div class="shortcut-row">
+              <span class="shortcut-desc">Baixar PDF Preenchido</span>
+              <kbd>Ctrl + S</kbd>
+            </div>
+          </div>
+          <div class="help-tips-box mt-4">
+            <strong>Dica de ouro:</strong> Em documentos digitalizados sem campos interativos, clique na ferramenta <strong>Texto (T)</strong> ou <strong>Visto (✓)</strong> e clique em qualquer linha para preencher o formulário livremente!
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" id="btn-ok-help">Entendido</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
